@@ -1,0 +1,1 @@
+一个vite的模板项目，包含vue，scss，vuex，vue-router和typescript
