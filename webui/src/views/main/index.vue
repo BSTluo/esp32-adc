@@ -123,7 +123,13 @@ const getOutputWidth = () =>
           <!-- 状态栏 -->
           <div class="statusListBox"></div>
           <!-- 模拟量输入配置 -->
-          <div class="inputViewListBox" :style="{ width: `${getInputWidth()}%` }"></div>
+          <div class="inputViewListBox" :style="{ width: `${getInputWidth()}%` }">
+            <!-- 行 -->
+            <div class="inputRowItem">
+              <!-- 列 -->
+              <div class="inputColumnItem"></div>
+            </div>
+          </div>
           <!-- 数字量输出配置 -->
           <div class="outputViewListBox" :style="{ width: `${getOutputWidth()}%` }"></div>
         </div>
