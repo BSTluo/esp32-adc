@@ -121,17 +121,28 @@ const getOutputWidth = () =>
         <div class="splitBox"></div>
         <div class="mainViewBox">
           <!-- 状态栏 -->
-          <div class="statusListBox"></div>
+          <div class="statusListBox">
+            <!-- 行 -->
+            <div class="rowItem">
+              <!-- 列 -->
+              <div class="columnItem"></div>
+            </div>
+          </div>
           <!-- 模拟量输入配置 -->
           <div class="inputViewListBox" :style="{ width: `${getInputWidth()}%` }">
             <!-- 行 -->
-            <div class="inputRowItem">
+            <div class="rowItem">
               <!-- 列 -->
-              <div class="inputColumnItem"></div>
+              <div class="columnItem"></div>
             </div>
           </div>
           <!-- 数字量输出配置 -->
-          <div class="outputViewListBox" :style="{ width: `${getOutputWidth()}%` }"></div>
+          <div class="outputViewListBox" :style="{ width: `${getOutputWidth()}%` }">
+            <div class="rowItem">
+              <!-- 列 -->
+              <div class="columnItem"></div>
+            </div>
+          </div>
         </div>
         <div class="splitBox"></div>
       </div>
@@ -249,15 +260,49 @@ const getOutputWidth = () =>
           width: 2%;
           height: 100%;
           border-right: 1px solid #4a4a4a;
+
+          .rowItem {
+            height: 50px;
+            width: 100%;
+            border-bottom: 1px solid #4a4a4a;
+
+            .columnItem {
+              width: 100%;
+              height: 100%;
+            }
+          }
         }
 
         .inputViewListBox {
           height: 100%;
           border-right: 1px solid #4a4a4a;
+
+          .rowItem {
+            height: 50px;
+            width: 100%;
+            border-bottom: 1px solid #4a4a4a;
+
+            .columnItem {
+              height: 100%;
+              border-right: 1px solid #4a4a4a;
+            }
+          }
         }
 
         .outputViewListBox {
           height: 100%;
+
+          .rowItem {
+            height: 50px;
+            width: 100%;
+            border-bottom: 1px solid #4a4a4a;
+
+
+            .columnItem {
+              height: 100%;
+              border-right: 1px solid #4a4a4a;
+            }
+          }
         }
       }
     }
