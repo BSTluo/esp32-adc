@@ -1,14 +1,47 @@
 <script lang="ts" setup>
+import { ref, type Ref } from 'vue';
 
 const iconList = [
   { classBase: 'bi bi-box-arrow-in-down', name: 'saveConfig' },
   { classBase: 'bi bi-box-arrow-in-up', name: 'readConfig' },
   { classBase: 'bi bi-play-fill', name: 'connectServer', classActivate: ' bi-stop-fill' },
-  { classBase: 'bi bi-gear', name: 'ipConfig' },
-  { classBase: 'bi bi-gear', name: 'portConfig' },
 ];
 
-const clickFunctionbase = (event, name) =>
+const inputList = [
+  { classBase: 'bi bi-gear', name: 'ipConfig', title: 'IP配置：', value: 'ip' },
+  { classBase: 'bi bi-gear', name: 'portConfig', title: '端口配置：', value: 'port' }
+];
+
+const config: Record<string, any> = {
+  ip: "",
+  port: "",
+  inputList: [
+    { name: '1', status: 0, value: 0 }, // status: -1禁用，0模拟量输入，1数字量输入，value:模拟量值|数字量值
+    { name: '2', status: 0, value: 0 },
+    { name: '3', status: 0, value: 0 },
+    { name: '4', status: 0, value: 0 },
+    { name: '5', status: 0, value: 0 },
+    { name: '6', status: 0, value: 0 },
+    { name: '7', status: 0, value: 0 },
+    { name: '8', status: 0, value: 0 },
+    { name: '9', status: 0, value: 0 },
+    { name: '10', status: 0, value: 0 }
+  ],
+  output: [
+    { name: '1', status: 0 }, // status: 0：数字量输出false，1：数字量输出true
+    { name: '2', status: 0 },
+    { name: '3', status: 0 },
+    { name: '4', status: 0 },
+    { name: '5', status: 0 },
+    { name: '6', status: 0 },
+    { name: '7', status: 0 },
+    { name: '8', status: 0 },
+    { name: '9', status: 0 },
+    { name: '10', status: 0 },
+  ]
+};
+
+const clickFunctionbase = (event: MouseEvent, name: string) =>
 {
   const target = event.currentTarget as HTMLElement;
 
@@ -29,11 +62,27 @@ const clickFunctionbase = (event, name) =>
   {
     ripple.remove();
   }, 600);
+
+  clickFunctionPack[name]();
 };
 
-const clickFunctionPack = {
+let connectServerStatus = false; // 连接状态
 
+const clickFunctionPack: Record<string, () => void> = {
+  saveConfig: () =>
+  {
+    console.log('保存配置');
+  },
+  readConfig: () =>
+  {
+    console.log('读取配置');
+  },
+  connectServer: () =>
+  {
+    console.log('连接服务器');
+  },
 };
+
 </script>
 
 <template>
@@ -45,14 +94,26 @@ const clickFunctionPack = {
 
       </div>
 
-      <!-- 保存配置 -->
-      <!-- 连接/断开 -->
+      <div class="inputItemBox" v-for="item in inputList">
+        <div class="title">{{ item.title }}</div>
+        <input class="inputBox" v-model="config[item.value]"></input>
+      </div>
       <!-- 目标IP -->
       <!-- 目标端口 -->
     </div>
-    <div class="bodyView">
-      <!-- 模拟量输入配置 -->
-      <!-- 数字量输出配置 -->
+    <div class="bodyViewBox">
+      <div class="bodyView">
+        <div class="splitBox"></div>
+        <div class="mainViewBox">
+          <!-- 状态栏 -->
+          <div class="statusListBox"></div>
+          <!-- 模拟量输入配置 -->
+          <div class="inputViewListBox"></div>
+          <!-- 数字量输出配置 -->
+          <div class="outputViewListBox"></div>
+        </div>
+        <div class="splitBox"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -62,10 +123,10 @@ const clickFunctionPack = {
   .headView {
     height: 5%;
     width: 100%;
-    background-color: #323232;
+    background-color: #323233;
     display: flex;
     align-items: center;
-    color: white;
+    color: #8E8E8E;
 
     .iconItemBoxs {
       position: relative; // 关键
@@ -76,11 +137,12 @@ const clickFunctionPack = {
       align-items: center;
       cursor: pointer;
       user-select: none;
+      background-color: #252526;
 
       .icon {
-        width: 30px;
-        height: 30px;
-        border: 1px solid white;
+        width: 25px;
+        height: 25px;
+        border: 1px solid #8E8E8E;
         border-radius: 5px;
         display: flex;
         justify-content: center;
@@ -106,12 +168,70 @@ const clickFunctionPack = {
       }
     }
 
+    .inputItemBox {
+      margin-left: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
 
+      .title {
+        font-size: 20px;
+      }
+
+      .inputBox {
+        border-radius: 5px;
+        border: 1px solid #8E8E8E;
+        background-color: #787878;
+        font-size: 20px;
+      }
+    }
   }
 
-  .bodyView {
+  .bodyViewBox {
     height: 95%;
     width: 100%;
+    background-color: #1E1E1E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .bodyView {
+      height: 100%;
+      width: 90%;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+
+      .splitBox {
+        height: 5%;
+        width: 100%;
+      }
+
+      .splitBox::-webkit-scrollbar {
+        display: none;
+        /* Chrome、Safari 隐藏滚动条 */
+      }
+
+      .mainViewBox {
+        height: 90%;
+        width: 100%;
+        background-color: #323233;
+        display: flex;
+        align-items: center;
+
+
+        .statusListBox {
+          width: 2%;
+          height: 100%;
+        }
+
+        .inputViewListBox {}
+
+        .outputViewListBox {}
+      }
+    }
   }
 }
 </style>
