@@ -27,7 +27,7 @@ const config: Record<string, any> = {
     { name: '9', status: 0, value: 0 },
     { name: '10', status: 0, value: 0 }
   ],
-  output: [
+  outputList: [
     { name: '1', status: 0 }, // status: 0：数字量输出false，1：数字量输出true
     { name: '2', status: 0 },
     { name: '3', status: 0 },
@@ -83,6 +83,21 @@ const clickFunctionPack: Record<string, () => void> = {
   },
 };
 
+const getInputWidth = () =>
+{
+  const max = config.inputList.length + config.outputList.length;
+  const min = config.inputList.length + 2;
+  const width = 98 * (min / max);
+  return width;
+};
+
+const getOutputWidth = () =>
+{
+  const max = config.inputList.length + config.outputList.length;
+  const min = config.outputList.length - 2;
+  const width = 98 * (min / max);
+  return width;
+};
 </script>
 
 <template>
@@ -108,9 +123,9 @@ const clickFunctionPack: Record<string, () => void> = {
           <!-- 状态栏 -->
           <div class="statusListBox"></div>
           <!-- 模拟量输入配置 -->
-          <div class="inputViewListBox"></div>
+          <div class="inputViewListBox" :style="{ width: `${getInputWidth()}%` }"></div>
           <!-- 数字量输出配置 -->
-          <div class="outputViewListBox"></div>
+          <div class="outputViewListBox" :style="{ width: `${getOutputWidth()}%` }"></div>
         </div>
         <div class="splitBox"></div>
       </div>
@@ -120,13 +135,15 @@ const clickFunctionPack: Record<string, () => void> = {
 
 <style scoped lang="scss">
 .mainView {
+  --mainFontColor: #8E8E8E;
+
   .headView {
     height: 5%;
     width: 100%;
     background-color: #323233;
     display: flex;
     align-items: center;
-    color: #8E8E8E;
+    color: var(--mainFontColor);
 
     .iconItemBoxs {
       position: relative; // 关键
@@ -142,7 +159,7 @@ const clickFunctionPack: Record<string, () => void> = {
       .icon {
         width: 25px;
         height: 25px;
-        border: 1px solid #8E8E8E;
+        border: 1px solid var(--mainFontColor);
         border-radius: 5px;
         display: flex;
         justify-content: center;
@@ -182,7 +199,7 @@ const clickFunctionPack: Record<string, () => void> = {
 
       .inputBox {
         border-radius: 5px;
-        border: 1px solid #8E8E8E;
+        border: 1px solid var(--mainFontColor);
         background-color: #787878;
         font-size: 20px;
       }
@@ -199,7 +216,7 @@ const clickFunctionPack: Record<string, () => void> = {
 
     .bodyView {
       height: 100%;
-      width: 90%;
+      width: 95%;
       overflow-y: auto;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -225,11 +242,17 @@ const clickFunctionPack: Record<string, () => void> = {
         .statusListBox {
           width: 2%;
           height: 100%;
+          border-right: 1px solid #4a4a4a;
         }
 
-        .inputViewListBox {}
+        .inputViewListBox {
+          height: 100%;
+          border-right: 1px solid #4a4a4a;
+        }
 
-        .outputViewListBox {}
+        .outputViewListBox {
+          height: 100%;
+        }
       }
     }
   }
