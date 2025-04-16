@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, type Ref } from 'vue';
+import { reactive, ref, toRaw, type Ref } from 'vue';
 
 const iconList = [
   { classBase: 'bi bi-box-arrow-in-down', name: 'saveConfig' },
@@ -12,34 +12,45 @@ const inputList = [
   { classBase: 'bi bi-gear', name: 'portConfig', title: '端口配置：', value: 'port' }
 ];
 
-const config: Record<string, any> = {
+const origin: Record<string, any> = {
   ip: "",
   port: "",
+  // 输入类型配置
   inputList: [
-    { name: '1', status: -1, value: 0 }, // status: -1禁用，0模拟量输入，1数字量输入，value:数字量值，max:模拟量上限，min：模拟量下限
-    { name: '2', status: -1, value: 0 },
-    { name: '3', status: -1, value: 0 },
-    { name: '4', status: -1, value: 0 },
-    { name: '5', status: -1, value: 0 },
-    { name: '6', status: -1, value: 0 },
-    { name: '7', status: -1, value: 0 },
-    { name: '8', status: -1, value: 0 },
-    { name: '9', status: -1, value: 0 },
-    { name: '10', status: -1, value: 0 }
+    { name: '1', status: -1 }, // status: -1禁用，0模拟量输入，1数字量输入
+    { name: '2', status: -1 },
+    { name: '3', status: -1 },
+    { name: '4', status: -1 },
+    { name: '5', status: -1 },
+    { name: '6', status: -1 },
+    { name: '7', status: -1 },
+    { name: '8', status: -1 },
+    { name: '9', status: -1 },
+    { name: '10', status: -1 }
+  ],
+  // 输入范围配置
+  nowInputList: [
+    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], // value:数字量值，max:模拟量上限，min：模拟量下限
   ],
   outputList: [
-    { name: '1', status: 0 }, // status: 0：数字量输出false，1：数字量输出true
-    { name: '2', status: 0 },
-    { name: '3', status: 0 },
-    { name: '4', status: 0 },
-    { name: '5', status: 0 },
-    { name: '6', status: 0 },
-    { name: '7', status: 0 },
-    { name: '8', status: 0 },
-    { name: '9', status: 0 },
-    { name: '10', status: 0 },
+    { name: '1' }, // status: 0：数字量输出false，1：数字量输出true
+    { name: '2' },
+    { name: '3' },
+    { name: '4' },
+    { name: '5' },
+    { name: '6' },
+    { name: '7' },
+    { name: '8' },
+    { name: '9' },
+    { name: '10' },
+  ],
+  // 输出值配置
+  nowOutputList: [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] // 数字量值
   ]
 };
+
+const config = reactive(origin); // 配置数据
 
 const clickFunctionbase = (event: MouseEvent, name: string) =>
 {
@@ -80,7 +91,7 @@ const clickFunctionPack: Record<string, () => void> = {
   connectServer: () =>
   {
     console.log('连接服务器');
-    console.log(config.inputList);
+    console.log(toRaw(config));
   },
 };
 
@@ -126,8 +137,13 @@ const getOutputWidth = () =>
           <div class="statusListBox">
             <!-- 行 -->
             <div class="rowItem"></div>
-            <div class="rowItem">通道</div>
-            <div class="rowItem">实时</div>
+            <div class="rowItem" :style="{ writingMode: 'vertical-rl', textOrientation: 'upright' }">通道</div>
+            <div class="rowItem" :style="{ writingMode: 'vertical-rl', textOrientation: 'upright' }">实时</div>
+
+            <div class="rowItem" v-for="(item, index) of config.nowInputList">
+              <!-- 列 -->
+              {{ index + 1 }}
+            </div>
           </div>
 
           <!-- 模拟量输入配置 -->
@@ -137,6 +153,7 @@ const getOutputWidth = () =>
               输入配置
             </div>
 
+            <!-- 配置 -->
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.inputList.length}%` }"
@@ -152,10 +169,33 @@ const getOutputWidth = () =>
               </div>
             </div>
 
+            <!-- 实时值 -->
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.inputList.length}%` }"
                 v-for="item of config.inputList"></div>
+            </div>
+
+            <!-- 正式配置 -->
+            <div class="rowItem" v-for="rowItem of config.nowInputList">
+              <!-- 列 -->
+              <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }"
+                v-for="(columnItem, columnIndex) of rowItem">
+
+                <div class="analogConfigBox" v-if="config.inputList[columnIndex].status == 0">
+                  <div class="analogConfigItem">
+                    <div class="analogIcon bi bi-arrow-up-short"></div>
+                    <input type="text"></input>
+                  </div>
+
+                  <div class="analogConfigItem">
+                    <div class="analogIcon bi bi-arrow-down-short"></div>
+                    <input type="text"></input>
+                  </div>
+                </div>
+
+                <input type="checkbox" v-if="config.inputList[columnIndex].status == 1" class="checkbox"></input>
+              </div>
             </div>
           </div>
 
@@ -165,17 +205,30 @@ const getOutputWidth = () =>
               输出配置
             </div>
 
+            <!-- 配置 -->
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.outputList.length}%` }"
                 v-for="item of config.inputList">{{ item.name }}</div>
             </div>
 
+            <!-- 实时值 -->
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.outputList.length}%` }"
-                v-for="item of config.inputList"></div>
+                v-for="item of config.inputList">
+
+              </div>
             </div>
+
+            <!-- 正式配置 -->
+            <div class="rowItem" v-for="rowItem of config.nowOutputList">
+              <!-- 列 -->
+              <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }" v-for="(columnItem) of rowItem">
+                <input type="checkbox" class="checkbox"></input>
+              </div>
+            </div>
+
           </div>
         </div>
         <div class="splitBox"></div>
@@ -343,6 +396,45 @@ const getOutputWidth = () =>
                 align-items: center;
                 justify-content: center;
               }
+
+              .analogConfigBox {
+                height: 100%;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: space-around;
+
+                .analogConfigItem {
+                  width: 90%;
+                  height: 40%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-around;
+
+                  .analogIcon {
+                    width: 30%;
+                    height: 70%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 2rem;
+
+                  }
+
+                  input {
+                    width: 60%;
+                    height: 70%;
+                    border-radius: 10px;
+                    text-align: center;
+                  }
+                }
+              }
+
+              .checkbox {
+                height: 30px;
+                width: 30px;
+              }
             }
           }
         }
@@ -366,6 +458,11 @@ const getOutputWidth = () =>
               display: flex;
               align-items: center;
               justify-content: center;
+
+              .checkbox {
+                height: 30px;
+                width: 30px;
+              }
             }
           }
         }
