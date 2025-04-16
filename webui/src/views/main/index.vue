@@ -16,16 +16,16 @@ const config: Record<string, any> = {
   ip: "",
   port: "",
   inputList: [
-    { name: '1', status: 0, value: 0 }, // status: -1禁用，0模拟量输入，1数字量输入，value:模拟量值|数字量值
-    { name: '2', status: 0, value: 0 },
-    { name: '3', status: 0, value: 0 },
-    { name: '4', status: 0, value: 0 },
-    { name: '5', status: 0, value: 0 },
-    { name: '6', status: 0, value: 0 },
-    { name: '7', status: 0, value: 0 },
-    { name: '8', status: 0, value: 0 },
-    { name: '9', status: 0, value: 0 },
-    { name: '10', status: 0, value: 0 }
+    { name: '1', status: -1, value: 0 }, // status: -1禁用，0模拟量输入，1数字量输入，value:模拟量值|数字量值
+    { name: '2', status: -1, value: 0 },
+    { name: '3', status: -1, value: 0 },
+    { name: '4', status: -1, value: 0 },
+    { name: '5', status: -1, value: 0 },
+    { name: '6', status: -1, value: 0 },
+    { name: '7', status: -1, value: 0 },
+    { name: '8', status: -1, value: 0 },
+    { name: '9', status: -1, value: 0 },
+    { name: '10', status: -1, value: 0 }
   ],
   outputList: [
     { name: '1', status: 0 }, // status: 0：数字量输出false，1：数字量输出true
@@ -80,6 +80,7 @@ const clickFunctionPack: Record<string, () => void> = {
   connectServer: () =>
   {
     console.log('连接服务器');
+    console.log(config.inputList)
   },
 };
 
@@ -142,10 +143,10 @@ const getOutputWidth = () =>
                 v-for="item of config.inputList">
                 <div class="itemTitle">{{ item.name }}</div>
                 <div class="itemConfig">
-                  <select>
-                    <option value="-1">禁用</option>
-                    <option value="0">模拟量</option>
-                    <option value="1">数字量</option>
+                  <select v-model.number="item.status">
+                    <option :value="-1">禁用</option>
+                    <option :value="0">模拟量</option>
+                    <option :value="1">数字量</option>
                   </select>
                 </div>
               </div>
