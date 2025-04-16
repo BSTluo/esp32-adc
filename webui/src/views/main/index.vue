@@ -120,27 +120,37 @@ const getOutputWidth = () =>
       <div class="bodyView">
         <div class="splitBox"></div>
         <div class="mainViewBox">
+
           <!-- 状态栏 -->
           <div class="statusListBox">
             <!-- 行 -->
-            <div class="rowItem">
-              <!-- 列 -->
-              <div class="columnItem"></div>
-            </div>
+            <div class="rowItem"></div>
+            <div class="rowItem">通道</div>
           </div>
+
           <!-- 模拟量输入配置 -->
           <div class="inputViewListBox" :style="{ width: `${getInputWidth()}%` }">
             <!-- 行 -->
             <div class="rowItem">
+              输入配置
+            </div>
+
+            <div class="rowItem">
               <!-- 列 -->
-              <div class="columnItem"></div>
+              <div class="columnItem" :style="{ width: `${100 / config.inputList.length}%` }"
+                v-for="item of config.inputList"></div>
             </div>
           </div>
+
           <!-- 数字量输出配置 -->
           <div class="outputViewListBox" :style="{ width: `${getOutputWidth()}%` }">
             <div class="rowItem">
+              输出配置
+            </div>
+            <div class="rowItem">
               <!-- 列 -->
-              <div class="columnItem"></div>
+              <div class="columnItem" :style="{ width: `${100 / config.outputList.length}%` }"
+                v-for="item of config.inputList"></div>
             </div>
           </div>
         </div>
@@ -265,11 +275,11 @@ const getOutputWidth = () =>
             height: 50px;
             width: 100%;
             border-bottom: 1px solid #4a4a4a;
-
-            .columnItem {
-              width: 100%;
-              height: 100%;
-            }
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: row;
+            color: var(--mainFontColor);
           }
         }
 
@@ -281,10 +291,18 @@ const getOutputWidth = () =>
             height: 50px;
             width: 100%;
             border-bottom: 1px solid #4a4a4a;
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            justify-content: center;
+            color: var(--mainFontColor);
 
             .columnItem {
               height: 100%;
               border-right: 1px solid #4a4a4a;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
           }
         }
@@ -296,11 +314,18 @@ const getOutputWidth = () =>
             height: 50px;
             width: 100%;
             border-bottom: 1px solid #4a4a4a;
-
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            justify-content: center;
+            color: var(--mainFontColor);
 
             .columnItem {
               height: 100%;
               border-right: 1px solid #4a4a4a;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
           }
         }
