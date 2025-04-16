@@ -16,7 +16,7 @@ const config: Record<string, any> = {
   ip: "",
   port: "",
   inputList: [
-    { name: '1', status: -1, value: 0 }, // status: -1禁用，0模拟量输入，1数字量输入，value:模拟量值|数字量值
+    { name: '1', status: -1, value: 0 }, // status: -1禁用，0模拟量输入，1数字量输入，value:数字量值，max:模拟量上限，min：模拟量下限
     { name: '2', status: -1, value: 0 },
     { name: '3', status: -1, value: 0 },
     { name: '4', status: -1, value: 0 },
@@ -80,7 +80,7 @@ const clickFunctionPack: Record<string, () => void> = {
   connectServer: () =>
   {
     console.log('连接服务器');
-    console.log(config.inputList)
+    console.log(config.inputList);
   },
 };
 
@@ -296,7 +296,7 @@ const getOutputWidth = () =>
           border-right: 1px solid #4a4a4a;
 
           .rowItem {
-            height: 50px;
+            height: 75px;
             width: 100%;
             border-bottom: 1px solid #4a4a4a;
             display: flex;
@@ -312,7 +312,7 @@ const getOutputWidth = () =>
           border-right: 1px solid #4a4a4a;
 
           .rowItem {
-            height: 50px;
+            height: 75px;
             width: 100%;
             border-bottom: 1px solid #4a4a4a;
             display: flex;
@@ -351,7 +351,7 @@ const getOutputWidth = () =>
           height: 100%;
 
           .rowItem {
-            height: 50px;
+            height: 75px;
             width: 100%;
             border-bottom: 1px solid #4a4a4a;
             display: flex;
