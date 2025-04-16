@@ -126,6 +126,7 @@ const getOutputWidth = () =>
             <!-- 行 -->
             <div class="rowItem"></div>
             <div class="rowItem">通道</div>
+            <div class="rowItem">实时</div>
           </div>
 
           <!-- 模拟量输入配置 -->
@@ -133,6 +134,21 @@ const getOutputWidth = () =>
             <!-- 行 -->
             <div class="rowItem">
               输入配置
+            </div>
+
+            <div class="rowItem">
+              <!-- 列 -->
+              <div class="columnItem" :style="{ width: `${100 / config.inputList.length}%` }"
+                v-for="item of config.inputList">
+                <div class="itemTitle">{{ item.name }}</div>
+                <div class="itemConfig">
+                  <select>
+                    <option value="-1">禁用</option>
+                    <option value="0">模拟量</option>
+                    <option value="1">数字量</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div class="rowItem">
@@ -147,6 +163,13 @@ const getOutputWidth = () =>
             <div class="rowItem">
               输出配置
             </div>
+
+            <div class="rowItem">
+              <!-- 列 -->
+              <div class="columnItem" :style="{ width: `${100 / config.outputList.length}%` }"
+                v-for="item of config.inputList">{{ item.name }}</div>
+            </div>
+
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.outputList.length}%` }"
@@ -303,6 +326,22 @@ const getOutputWidth = () =>
               display: flex;
               align-items: center;
               justify-content: center;
+
+              .itemTitle {
+                height: 100%;
+                width: 30%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+
+              .itemConfig {
+                height: 100%;
+                width: 70%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
             }
           }
         }
