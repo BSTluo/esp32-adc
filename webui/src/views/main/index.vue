@@ -30,7 +30,7 @@ const origin: Record<string, any> = {
   ],
   // 输入范围配置
   nowInputList: [
-    [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], // value:数字量值，max:模拟量上限，min：模拟量下限
+    // [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], // value:数字量值，max:模拟量上限，min：模拟量下限
   ],
   outputList: [
     { name: '1' }, // status: 0：数字量输出false，1：数字量输出true
@@ -46,7 +46,7 @@ const origin: Record<string, any> = {
   ],
   // 输出值配置
   nowOutputList: [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] // 数字量值
+    // [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] // 数字量值
   ]
 };
 
@@ -82,11 +82,41 @@ let connectServerStatus = false; // 连接状态
 const clickFunctionPack: Record<string, () => void> = {
   saveConfig: () =>
   {
-    console.log('保存配置');
+    const filename = prompt('请输入文件名（无需加 .json）：', 'config');
+    if (!filename) return;
+
+    const blob = new Blob([JSON.stringify(toRaw(config), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   },
   readConfig: () =>
   {
-    console.log('读取配置');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async () =>
+    {
+      const file = input.files?.[0];
+      if (file)
+      {
+        const text = await file.text();
+        try
+        {
+          const json = JSON.parse(text);
+          Object.assign(config, json);  // 覆盖原 config 内容（浅合并）
+        } catch (err)
+        {
+          alert('文件格式不正确');
+          console.error(err);
+        }
+      }
+    };
+    input.click();
+
   },
   connectServer: () =>
   {
@@ -109,6 +139,49 @@ const getOutputWidth = () =>
   const min = config.outputList.length - 2;
   const width = 98 * (min / max);
   return width;
+};
+
+const addConfigList = () =>
+{
+  const newInputList = new Array(config.inputList.length).fill(null).map(() => ({}));
+  config.nowInputList.push(newInputList);
+
+  const newOutputList = new Array(config.outputList.length).map(() => 0);
+  config.nowOutputList.push(newOutputList);
+};
+
+const rmConfigList = () =>
+{
+  config.nowInputList.pop();
+  config.nowOutputList.pop();
+};
+
+const updateInputStatus = (event: Event, item: { status: number; }, passage: number) =>
+{
+  const target = event.target as HTMLSelectElement;
+  const status = Number(target.value);
+  item.status = status;
+  config.nowInputList.forEach((element: any, index: number) =>
+  {
+    if (status == -1)
+    {
+      config.nowInputList[index][passage] = {};
+    }
+
+    // value:数字量值，max:模拟量上限，min：模拟量下限
+    // status: -1禁用，0模拟量输入，1数字量输入
+    if (status == 0)
+    {
+      delete config.nowInputList[index][passage].value;
+    }
+
+    if (status == 1)
+    {
+      delete config.nowInputList[index][passage].max;
+      delete config.nowInputList[index][passage].min;
+    }
+  });
+
 };
 </script>
 
@@ -144,6 +217,11 @@ const getOutputWidth = () =>
               <!-- 列 -->
               {{ index + 1 }}
             </div>
+
+            <div class="rowItem">
+              <div class="addRowButtonBox bi bi-plus-circle" @click="addConfigList"></div>
+              <div class="rmRowButtonBox bi bi-dash-circle" @click="rmConfigList"></div>
+            </div>
           </div>
 
           <!-- 模拟量输入配置 -->
@@ -157,10 +235,10 @@ const getOutputWidth = () =>
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.inputList.length}%` }"
-                v-for="item of config.inputList">
+                v-for="(item, index) of config.inputList">
                 <div class="itemTitle">{{ item.name }}</div>
                 <div class="itemConfig">
-                  <select v-model.number="item.status">
+                  <select @change="updateInputStatus($event, item, index)">
                     <option :value="-1">禁用</option>
                     <option :value="0">模拟量</option>
                     <option :value="1">数字量</option>
@@ -185,16 +263,17 @@ const getOutputWidth = () =>
                 <div class="analogConfigBox" v-if="config.inputList[columnIndex].status == 0">
                   <div class="analogConfigItem">
                     <div class="analogIcon bi bi-arrow-up-short"></div>
-                    <input type="text"></input>
+                    <input type="text" v-model="columnItem.max"></input>
                   </div>
 
                   <div class="analogConfigItem">
                     <div class="analogIcon bi bi-arrow-down-short"></div>
-                    <input type="text"></input>
+                    <input type="text" v-model="columnItem.min"></input>
                   </div>
                 </div>
 
-                <input type="checkbox" v-if="config.inputList[columnIndex].status == 1" class="checkbox"></input>
+                <input type="checkbox" v-if="config.inputList[columnIndex].status == 1" class="checkbox"
+                  v-model="columnItem.value"></input>
               </div>
             </div>
           </div>
@@ -224,7 +303,7 @@ const getOutputWidth = () =>
             <!-- 正式配置 -->
             <div class="rowItem" v-for="rowItem of config.nowOutputList">
               <!-- 列 -->
-              <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }" v-for="(columnItem) of rowItem">
+              <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }" v-for="columnItem of rowItem">
                 <input type="checkbox" class="checkbox"></input>
               </div>
             </div>
@@ -355,8 +434,28 @@ const getOutputWidth = () =>
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: row;
+            flex-direction: column;
             color: var(--mainFontColor);
+
+            .addRowButtonBox {
+              width: 100%;
+              height: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              font-size: 20px;
+            }
+
+            .rmRowButtonBox {
+              width: 100%;
+              height: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              font-size: 20px;
+            }
           }
         }
 
