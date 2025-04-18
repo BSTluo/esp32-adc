@@ -17,32 +17,32 @@ const origin: Record<string, any> = {
   port: "",
   // 输入类型配置
   inputList: [
-    { name: '1', status: -1 }, // status: -1禁用，0模拟量输入，1数字量输入
-    { name: '2', status: -1 },
-    { name: '3', status: -1 },
-    { name: '4', status: -1 },
-    { name: '5', status: -1 },
-    { name: '6', status: -1 },
-    { name: '7', status: -1 },
-    { name: '8', status: -1 },
-    { name: '9', status: -1 },
-    { name: '10', status: -1 }
+    { name: 1, status: -1 }, // status: -1禁用，0模拟量输入，1数字量输入
+    { name: 2, status: -1 },
+    { name: 3, status: -1 },
+    { name: 4, status: -1 },
+    { name: 5, status: -1 },
+    { name: 6, status: -1 },
+    { name: 7, status: -1 },
+    { name: 8, status: -1 },
+    { name: 9, status: -1 },
+    { name: 10, status: -1 }
   ],
   // 输入范围配置
   nowInputList: [
     // [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}], // value:数字量值，max:模拟量上限，min：模拟量下限
   ],
   outputList: [
-    { name: '1' }, // status: 0：数字量输出false，1：数字量输出true
-    { name: '2' },
-    { name: '3' },
-    { name: '4' },
-    { name: '5' },
-    { name: '6' },
-    { name: '7' },
-    { name: '8' },
-    { name: '9' },
-    { name: '10' },
+    { name: 1 }, // status: 0：数字量输出false，1：数字量输出true
+    { name: 2 },
+    { name: 3 },
+    { name: 4 },
+    { name: 5 },
+    { name: 6 },
+    { name: 7 },
+    { name: 8 },
+    { name: 9 },
+    { name: 10 },
   ],
   // 输出值配置
   nowOutputList: [
