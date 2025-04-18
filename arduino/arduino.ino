@@ -4,62 +4,41 @@
 
 AsyncWebServer server(80);
 
-int input1Status = -1;
-int input2Status = -1;
-int input3Status = -1;
-int input4Status = -1;
-int input5Status = -1;
-int input6Status = -1;
-int input7Status = -1;
-int input8Status = -1;
-int input9Status = -1;
-int input10Status = -1;
 
-int intput1Max = 0;
-int intput2Max = 0;
-int intput3Max = 0;
-int intput4Max = 0;
-int intput5Max = 0;
-int intput6Max = 0;
-int intput7Max = 0;
-int intput8Max = 0;
-int intput9Max = 0;
-int intput10Max = 0;
+const int MAX_SIZE = 10;
 
-int intput1Min = 0;
-int intput2Min = 0;
-int intput3Min = 0;
-int intput4Min = 0;
-int intput5Min = 0;
-int intput6Min = 0;
-int intput7Min = 0;
-int intput8Min = 0;
-int intput9Min = 0;
-int intput10Min = 0;
+int inputStatus[MAX_SIZE];
 
-int input1IO = 0;
-int input2IO = 0;
-int input3IO = 0;
-int input4IO = 0;
-int input5IO = 0;
-int input6IO = 0;
-int input7IO = 0;
-int input8IO = 0;
-int input9IO = 0;
-int input10IO = 0;
+int inputMax[MAX_SIZE][MAX_SIZE] = { 0 };
+int inputMin[MAX_SIZE][MAX_SIZE] = { 0 };
+int inputIO[MAX_SIZE][MAX_SIZE] = { 0 };
+int outputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 
-int output1Setting = 0;
-int output2Setting = 0;
-int output3Setting = 0;
-int output4Setting = 0;
-int output5Setting = 0;
-int output6Setting = 0;
-int output7Setting = 0;
-int output8Setting = 0;
-int output9Setting = 0;
-int output10Setting = 0;
+
+void print2DArray(int arr[MAX_SIZE][MAX_SIZE]) {
+  for (int i = 0; i < MAX_SIZE; i++) {
+    for (int j = 0; j < MAX_SIZE; j++) {
+      Serial.print(arr[i][j]);
+      Serial.print("\t");  // 用制表符分隔
+    }
+    Serial.println();  // 换行
+  }
+}
+
+void print1DArray(int arr[MAX_SIZE]) {
+  for (int i = 0; i < MAX_SIZE; i++) {
+    Serial.print(arr[i]);
+    Serial.print("\t");  // 可选：让数据更整齐
+  }
+  Serial.println();  // 打印完一行后换行
+}
 
 void setup() {
+
+  for (int i = 0; i < MAX_SIZE; i++) {
+    inputStatus[i] = -1;
+  }
+
   // initialize serial communication at 115200 bits per second:
   Serial.begin(9600);
 
@@ -81,13 +60,21 @@ void setup() {
   // webServer.on("/assets/index-CdHVMU6r.js", handleJs);    //设置主页回调函数
   // webServer.on("/assets/index-BdrH_tCX.css", handleCss);  //设置主页回调函数
 
+  server.on("/setting", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+    AsyncWebServerResponse *response = request->beginResponse(200);
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    response->addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+    request->send(response);
+  });
+
   server.on(
     "/setting", HTTP_POST, [](AsyncWebServerRequest *request) {},
-    NULL,
-    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
       // 将收到的数据解析为 JSON
       JsonDocument jsonDoc;
       DeserializationError error = deserializeJson(jsonDoc, data);
+      Serial.println("ok");
 
       if (error) {
         Serial.print("JSON 解析失败: ");
@@ -100,24 +87,79 @@ void setup() {
       JsonArray inputList = jsonDoc["inputList"];
       JsonArray nowInputList = jsonDoc["nowInputList"];
 
-      JsonArray outputList = jsonDoc["outputList"];
       JsonArray nowOutputList = jsonDoc["nowOutputList"];
 
-      for (JsonObject inputListTemp : inputList) {
+      for (JsonDocument inputListTemp : inputList) {
         int name = inputListTemp["name"];
         int status = inputListTemp["status"];
-        
+
+        inputStatus[name - 1] = status;
+      }
+
+      for (int i1 = 0; i1 < nowInputList.size(); ++i1) {
+        JsonArray nowInputListTemp = nowInputList[i1];
+
+        for (int j1 = 0; j1 < nowInputListTemp.size(); ++j1) {
+          JsonDocument item = nowInputListTemp[j1];
+
+          String aaa;
+          DeserializationError error2 = deserializeJson(item, aaa);
+          if (error2) {
+            Serial.print("JSON 解析失败: ");
+            Serial.println(error.c_str());
+            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+            return;
+          }
+          Serial.println(aaa);
+
+          if (item["value"].is<int>()) {
+            inputIO[j1][i1] = item["value"].as<int>();
+          }
+
+          if (item["max"].is<int>() && item["min"].is<int>()) {
+            inputMax[j1][i1] = item["max"].as<int>();
+            inputMin[j1][i1] = item["min"].as<int>();
+          }
+        }
+      }
+
+      for (int i2 = 0; i2 < nowOutputList.size(); ++i2) {
+        JsonArray nowOutputListTemp = nowOutputList[i2];
+
+        for (int j2 = 0; j2 < nowOutputListTemp.size(); ++j2) {
+          int item = nowOutputListTemp[j2];
+          outputIO[j2][i2] = item;
+        }
       }
 
       // 回复客户端
       String response;
       JsonDocument responseDoc;
-      responseDoc["status"] = "received";
-      responseDoc["name"] = "ok";
+      responseDoc["status"] = "ok";
       serializeJson(responseDoc, response);
 
-      request->send(200, "application/json", response);
+      Serial.println("inputMax:");
+      print2DArray(inputMax);
+
+      Serial.println("inputMin:");
+      print2DArray(inputMin);
+
+      Serial.println("inputIO:");
+      print2DArray(inputIO);
+
+      Serial.println("outputIO:");
+      print2DArray(outputIO);
+
+      Serial.println("inputStatus:");
+      print1DArray(inputStatus);
+
+      AsyncWebServerResponse *resp = request->beginResponse(200, "application/json", response);
+      resp->addHeader("Access-Control-Allow-Origin", "*");
+      request->send(resp);
+
+      // request->send(200, "application/json", response);
     });
+
 
   server.begin();
 }

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { reactive, ref, toRaw, type Ref } from 'vue';
+import { reactive, ref, toRaw } from 'vue';
 
 const iconList = [
   { classBase: 'bi bi-box-arrow-in-down', name: 'saveConfig' },
   { classBase: 'bi bi-box-arrow-in-up', name: 'readConfig' },
-  { classBase: 'bi bi-play-fill', name: 'connectServer', classActivate: ' bi-stop-fill' },
+  { classBase: 'bi', name: 'connectServer', classClose: ' bi-play-fill', classActivate: ' bi-stop-fill' },
 ];
 
 const inputList = [
@@ -13,8 +13,8 @@ const inputList = [
 ];
 
 const origin: Record<string, any> = {
-  ip: "",
-  port: "",
+  ip: "192.168.4.1",
+  port: "80",
   // 输入类型配置
   inputList: [
     { name: 1, status: -1 }, // status: -1禁用，0模拟量输入，1数字量输入
@@ -47,7 +47,8 @@ const origin: Record<string, any> = {
   // 输出值配置
   nowOutputList: [
     // [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] // 数字量值
-  ]
+  ],
+  configItemLength: 0 // 配置项长度
 };
 
 const config = reactive(origin); // 配置数据
@@ -77,7 +78,37 @@ const clickFunctionbase = (event: MouseEvent, name: string) =>
   clickFunctionPack[name]();
 };
 
-let connectServerStatus = false; // 连接状态
+let connectServerStatus = ref(false); // 连接状态
+
+setInterval(async () =>
+{
+  if (connectServerStatus.value)
+  {
+    // 连接服务器
+    console.log('连接服务器');
+
+    const host = `http://${config.ip}:${config.port}/setting`;
+
+    console.log(toRaw(config));
+
+    fetch(host, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(toRaw(config)),
+    })
+      .then((response) => response.json())
+      .then((data) =>
+      {
+        console.log('成功:', data);
+      })
+      .catch((error) =>
+      {
+        console.error('错误:', error);
+      });
+  }
+}, 5000);
 
 const clickFunctionPack: Record<string, () => void> = {
   saveConfig: () =>
@@ -121,7 +152,7 @@ const clickFunctionPack: Record<string, () => void> = {
   connectServer: () =>
   {
     console.log('连接服务器');
-    console.log(toRaw(config));
+    connectServerStatus.value = !connectServerStatus.value;
   },
 };
 
@@ -148,12 +179,17 @@ const addConfigList = () =>
 
   const newOutputList = new Array(config.outputList.length).map(() => 0);
   config.nowOutputList.push(newOutputList);
+
+  config.configItemLength++;
 };
 
 const rmConfigList = () =>
 {
   config.nowInputList.pop();
   config.nowOutputList.pop();
+
+  config.configItemLength--;
+  if (config.configItemLength < 0) { config.configItemLength = 0; }
 };
 
 const updateInputStatus = (event: Event, item: { status: number; }, passage: number) =>
@@ -190,8 +226,8 @@ const updateInputStatus = (event: Event, item: { status: number; }, passage: num
     <div class="headView">
       <!-- 读取配置 -->
       <div class="iconItemBoxs" v-for="item in iconList" @click="clickFunctionbase($event, item.name)">
-        <div class="icon" :class="item.classBase"></div>
-
+        <div class="icon" :class="`${item.classBase} ${(connectServerStatus ? item.classActivate : item.classClose)}`">
+        </div>
       </div>
 
       <div class="inputItemBox" v-for="item in inputList">
@@ -273,7 +309,7 @@ const updateInputStatus = (event: Event, item: { status: number; }, passage: num
                 </div>
 
                 <input type="checkbox" v-if="config.inputList[columnIndex].status == 1" class="checkbox"
-                  v-model="columnItem.value"></input>
+                  v-model="columnItem.value" :true-value="1" :false-value="0"></input>
               </div>
             </div>
           </div>
