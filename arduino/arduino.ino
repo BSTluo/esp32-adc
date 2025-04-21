@@ -22,7 +22,8 @@ int outputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 
 
 // 当前实时数据
-int nowValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+int nowInputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+int nowOutputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
 // 当前输出的针脚
 int outputPin[] = { 20, 21, 47, 48, 45, 40, 41, 42, 18, 17 };
@@ -162,48 +163,23 @@ void setup() {
       // request->send(200, "application/json", response);
     });
 
-
-
-  // server.on("/getValue", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
-  //   AsyncWebServerResponse *response = request->beginResponse(200);
-  //   response->addHeader("Access-Control-Allow-Origin", "*");
-  //   response->addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  //   response->addHeader("Access-Control-Allow-Headers", "Content-Type");
-  //   request->send(response);
-  // });
-
-  server.on(
-    "/getValue", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-      // 回复客户端
-      String response;
-      JsonDocument responseDoc;
-      responseDoc["status"] = "ok";
-
-      JsonArray arr = responseDoc.createNestedArray("nowValue");
-      for (int i = 0; i < 10; i++) {
-        arr.add(nowValue[i]);
-      }
-
-      serializeJson(responseDoc, response);
-
-      AsyncWebServerResponse *resp = request->beginResponse(200, "application/json", response);
-      resp->addHeader("Access-Control-Allow-Origin", "*");
-      request->send(resp);
-    });
-
-
   server.on("/getValue", HTTP_GET, [](AsyncWebServerRequest *request) {
     String response;
     JsonDocument responseDoc;
     responseDoc["status"] = "ok";
 
-    JsonArray arr = responseDoc.createNestedArray("nowValue");
+    JsonArray arr1 = responseDoc.createNestedArray("nowInputValue");
     for (int i = 0; i < 10; i++) {
-      arr.add(nowValue[i]);
+      arr1.add(nowInputValue[i]);
+    }
+
+    JsonArray arr2 = responseDoc.createNestedArray("nowOutputValue");
+    for (int i = 0; i < 10; i++) {
+      arr2.add(nowOutputValue[i]);
     }
 
     serializeJson(responseDoc, response);
-    
+
     // 设置允许跨域访问的头部
     AsyncWebServerResponse *res = request->beginResponse(200, "text/plain", response);
     res->addHeader("Access-Control-Allow-Origin", "*");  // 允许所有来源访问
@@ -228,7 +204,7 @@ bool channelVerification(int channel, int configStep) {
   int status = inputStatus[channel - 1];
 
   if (status == -1) {
-    nowValue[channel - 1] = -1;
+    nowInputValue[channel - 1] = -1;
     return true;
   }
 
@@ -237,14 +213,14 @@ bool channelVerification(int channel, int configStep) {
     int min = inputMin[channel - 1][configStep];
 
     int now = analogRead(channelToInputPin(channel));
-    nowValue[channel - 1] = now;
+    nowInputValue[channel - 1] = now;
     if (now > min && now < max) { return true; }
   }
 
   if (status == 1) {
     int need = inputIO[channel - 1][configStep];
     int now = digitalRead(channelToInputPin(channel));
-    nowValue[channel - 1] = now;
+    nowInputValue[channel - 1] = now;
     if (now == need) { return true; }
   }
 
@@ -253,20 +229,22 @@ bool channelVerification(int channel, int configStep) {
 
 void loop() {
   // 测通道的值
-  // for (int index = 0; index < configItemLength; index++) {
-  //   for (int channel = 1; channel < MAX_SIZE; channel++) {
-  //     if (!channelVerification(channel, index)) {
-  //       break;
-  //     }
-  //   }
+  for (int index = 0; index < configItemLength; index++) {
+    for (int channel = 1; channel < MAX_SIZE; channel++) {
+      if (!channelVerification(channel, index)) {
+        break;
+      }
+    }
 
-  //   for (int channel = 1; channel < MAX_SIZE; channel++) {
-  //     if (outputIO[index][channel - 1]) {
-  //       digitalWrite(channelToOutputPin(channel), HIGH);
-  //     } else {
-  //       digitalWrite(channelToOutputPin(channel), LOW);
-  //     }
-  //   }
-  // }
+    for (int channel = 1; channel < MAX_SIZE; channel++) {
+      if (outputIO[index][channel - 1]) {
+        digitalWrite(channelToOutputPin(channel), HIGH);
+        nowOutputValue[channel - 1] = 1;
+      } else {
+        digitalWrite(channelToOutputPin(channel), LOW);
+        nowOutputValue[channel - 1] = 0;
+      }
+    }
+  }
   // delay(5000);
 }

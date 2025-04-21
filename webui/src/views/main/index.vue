@@ -14,7 +14,9 @@ const inputList = [
 ];
 
 
-const nowValue = ref([]); // 当前值
+const nowInputValue = ref([]); // 当前值
+const nowOutputValue = ref([]); // 当前值
+
 
 const origin: Record<string, any> = {
   ip: "192.168.4.1",
@@ -90,20 +92,19 @@ setInterval(async () =>
   {
     const host = `http://${config.ip}:${config.port}/getValue`;
 
-    fetch(host, {method: 'GET'})
+    fetch(host, { method: 'GET' })
       .then((response) => response.json())
       .then((data) =>
       {
-        console.log('成功:', data);
-
-        nowValue.value = data.nowValue; // 更新当前值
+        nowInputValue.value = data.nowInputValue; // 更新当前值
+        nowOutputValue.value = data.nowOutputValue; // 更新当前值
       })
       .catch((error) =>
       {
         console.error('错误:', error);
       });
   }
-}, 5000);
+}, 100);
 
 const clickFunctionPack: Record<string, () => void> = {
   saveConfig: () =>
@@ -161,9 +162,16 @@ const clickFunctionPack: Record<string, () => void> = {
       .then((data) =>
       {
         console.log('成功:', data);
+        if (data.status == "ok")
+        {
+          alert('写入数据成功！');
+        } else {
+          alert('写入数据失败！');
+        }
       })
       .catch((error) =>
       {
+        alert('写入数据失败！');
         console.error('错误:', error);
       });
   },
@@ -304,7 +312,7 @@ const updateInputStatus = (event: Event, passage: number) =>
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.inputList.length}%` }"
-                v-for="(item, index) of config.inputList">{{ nowValue[index] }}</div>
+                v-for="(item, index) of config.inputList">{{ nowInputValue[index] }}</div>
             </div>
 
             <!-- 正式配置 -->
@@ -348,8 +356,8 @@ const updateInputStatus = (event: Event, passage: number) =>
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.outputList.length}%` }"
-                v-for="item of config.inputList">
-
+                v-for="(item, index) of config.inputList">
+                {{ nowOutputValue[index] }}
               </div>
             </div>
 
