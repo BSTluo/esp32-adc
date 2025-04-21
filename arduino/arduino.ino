@@ -7,13 +7,16 @@ AsyncWebServer server(80);
 
 const int MAX_SIZE = 10;
 
+// 输入通道的状态配置
 int inputStatus[MAX_SIZE];
 
+// [第几个通道, [每个通道的第几行配置]]
 int inputMax[MAX_SIZE][MAX_SIZE] = { 0 };
 int inputMin[MAX_SIZE][MAX_SIZE] = { 0 };
 int inputIO[MAX_SIZE][MAX_SIZE] = { 0 };
-int outputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 
+// 输出通道的状态配置
+int outputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 
 void print2DArray(int arr[MAX_SIZE][MAX_SIZE]) {
   for (int i = 0; i < MAX_SIZE; i++) {
@@ -79,14 +82,12 @@ void setup() {
       if (error) {
         Serial.print("JSON 解析失败: ");
         Serial.println(error.c_str());
-        request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+        request->send(400, "application/json", "{\"error\":\"Invalid JSON\", \"status\":\"error\"}");
         return;
       }
 
-      // 读取字段，比如 name 和 age
       JsonArray inputList = jsonDoc["inputList"];
       JsonArray nowInputList = jsonDoc["nowInputList"];
-
       JsonArray nowOutputList = jsonDoc["nowOutputList"];
 
       for (JsonDocument inputListTemp : inputList) {
@@ -100,25 +101,15 @@ void setup() {
         JsonArray nowInputListTemp = nowInputList[i1];
 
         for (int j1 = 0; j1 < nowInputListTemp.size(); ++j1) {
-          JsonDocument item = nowInputListTemp[j1];
+          JsonObject item = nowInputListTemp[j1];
 
-          String aaa;
-          DeserializationError error2 = deserializeJson(item, aaa);
-          if (error2) {
-            Serial.print("JSON 解析失败: ");
-            Serial.println(error.c_str());
-            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-            return;
-          }
-          Serial.println(aaa);
+          for (JsonPair kv : item) {
+            String key = kv.key().c_str();
+            int value = kv.value().as<int>();
 
-          if (item["value"].is<int>()) {
-            inputIO[j1][i1] = item["value"].as<int>();
-          }
-
-          if (item["max"].is<int>() && item["min"].is<int>()) {
-            inputMax[j1][i1] = item["max"].as<int>();
-            inputMin[j1][i1] = item["min"].as<int>();
+            if (key == "value") { inputIO[j1][i1] = value; }
+            if (key == "max") { inputMax[j1][i1] = value; }
+            if (key == "min") { inputMin[j1][i1] = value; }
           }
         }
       }
@@ -138,21 +129,6 @@ void setup() {
       responseDoc["status"] = "ok";
       serializeJson(responseDoc, response);
 
-      Serial.println("inputMax:");
-      print2DArray(inputMax);
-
-      Serial.println("inputMin:");
-      print2DArray(inputMin);
-
-      Serial.println("inputIO:");
-      print2DArray(inputIO);
-
-      Serial.println("outputIO:");
-      print2DArray(outputIO);
-
-      Serial.println("inputStatus:");
-      print1DArray(inputStatus);
-
       AsyncWebServerResponse *resp = request->beginResponse(200, "application/json", response);
       resp->addHeader("Access-Control-Allow-Origin", "*");
       request->send(resp);
@@ -166,15 +142,16 @@ void setup() {
 
 void loop() {
   // 测通道的值
-  // int analogValue1 = analogRead(1);
-  // int analogValue2 = analogRead(2);
-  // int analogValue3 = analogRead(3);
-  // int analogValue4 = analogRead(4);
-  // int analogValue5 = analogRead(5);
-  // int analogValue6 = analogRead(6);
-
-  // Serial.printf("ADC analog value = %d\n", analogValue);
-  // Serial.printf("ADC millivolts value = %d\n", analogVolts);
+  int status1 = inputStatus[0];
+  int status2 = inputStatus[1];
+  int status3 = inputStatus[2];
+  int status4 = inputStatus[3];
+  int status5 = inputStatus[4];
+  int status6 = inputStatus[5];
+  int status7 = inputStatus[6];
+  int status8 = inputStatus[7];
+  int status9 = inputStatus[8];
+  int status10 = inputStatus[9];
 
   // delay(1000);
 }

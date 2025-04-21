@@ -192,11 +192,11 @@ const rmConfigList = () =>
   if (config.configItemLength < 0) { config.configItemLength = 0; }
 };
 
-const updateInputStatus = (event: Event, item: { status: number; }, passage: number) =>
+const updateInputStatus = (event: Event, passage: number) =>
 {
   const target = event.target as HTMLSelectElement;
   const status = Number(target.value);
-  item.status = status;
+  // item.status = status;
   config.nowInputList.forEach((element: any, index: number) =>
   {
     if (status == -1)
@@ -274,7 +274,7 @@ const updateInputStatus = (event: Event, item: { status: number; }, passage: num
                 v-for="(item, index) of config.inputList">
                 <div class="itemTitle">{{ item.name }}</div>
                 <div class="itemConfig">
-                  <select @change="updateInputStatus($event, item, index)">
+                  <select @change="updateInputStatus($event, index)" v-model="item.status">
                     <option :value="-1">禁用</option>
                     <option :value="0">模拟量</option>
                     <option :value="1">数字量</option>
@@ -339,8 +339,8 @@ const updateInputStatus = (event: Event, item: { status: number; }, passage: num
             <!-- 正式配置 -->
             <div class="rowItem" v-for="rowItem of config.nowOutputList">
               <!-- 列 -->
-              <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }" v-for="columnItem of rowItem">
-                <input type="checkbox" class="checkbox"></input>
+              <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }" v-for="(columnItem, columnIndex) of rowItem">
+                <input type="checkbox" class="checkbox" v-model="rowItem[columnIndex]" :true-value="1" :false-value="0"></input>
               </div>
             </div>
 
