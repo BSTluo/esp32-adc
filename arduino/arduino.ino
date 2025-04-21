@@ -7,6 +7,9 @@ AsyncWebServer server(80);
 
 const int MAX_SIZE = 10;
 
+// 总配置行数
+int configItemLength;
+
 // 输入通道的状态配置
 int inputStatus[MAX_SIZE];
 
@@ -86,6 +89,8 @@ void setup() {
         return;
       }
 
+      configItemLength = jsonDoc["configItemLength"];
+
       JsonArray inputList = jsonDoc["inputList"];
       JsonArray nowInputList = jsonDoc["nowInputList"];
       JsonArray nowOutputList = jsonDoc["nowOutputList"];
@@ -140,18 +145,22 @@ void setup() {
   server.begin();
 }
 
+// 通道验证
+bool channelVerification(int channel) {
+  int status = inputStatus[channel];
+
+  if (status == -1) { return true; }
+  if (status == 0) {
+  }
+
+  if (status == 1) {
+  }
+}
+
 void loop() {
   // 测通道的值
-  int status1 = inputStatus[0];
-  int status2 = inputStatus[1];
-  int status3 = inputStatus[2];
-  int status4 = inputStatus[3];
-  int status5 = inputStatus[4];
-  int status6 = inputStatus[5];
-  int status7 = inputStatus[6];
-  int status8 = inputStatus[7];
-  int status9 = inputStatus[8];
-  int status10 = inputStatus[9];
 
-  // delay(1000);
+
+  for (int index = 0; index < configItemLength; index++) {
+  }
 }
