@@ -22,8 +22,8 @@ int outputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 
 
 // 当前实时数据
-int nowInputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-int nowOutputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+int nowInputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+int nowOutputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
 // 当前输出的针脚
 int outputPin[] = { 20, 21, 47, 48, 45, 40, 41, 42, 18, 17 };
@@ -238,15 +238,18 @@ void loop() {
       }
     }
 
-    if (skip == 1) { break; }
-
     for (int channel = 1; channel < MAX_SIZE; channel++) {
-      if (outputIO[index][channel - 1]) {
-        digitalWrite(channelToOutputPin(channel), HIGH);
-        nowOutputValue[channel - 1] = 1;
-      } else {
+      if (skip == 1) {
         digitalWrite(channelToOutputPin(channel), LOW);
         nowOutputValue[channel - 1] = 0;
+      } else {
+        if (outputIO[index][channel - 1]) {
+          digitalWrite(channelToOutputPin(channel), HIGH);
+          nowOutputValue[channel - 1] = 1;
+        } else {
+          digitalWrite(channelToOutputPin(channel), LOW);
+          nowOutputValue[channel - 1] = 0;
+        }
       }
     }
   }
