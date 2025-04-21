@@ -4,13 +4,17 @@ import { reactive, ref, toRaw } from 'vue';
 const iconList = [
   { classBase: 'bi bi-box-arrow-in-down', name: 'saveConfig' },
   { classBase: 'bi bi-box-arrow-in-up', name: 'readConfig' },
-  { classBase: 'bi', name: 'connectServer', classClose: ' bi-play-fill', classActivate: ' bi-stop-fill' },
+  { classBase: 'bi bi-cloud-upload', name: 'connectServer' },
+  { classBase: 'bi', name: 'getValue', classClose: ' bi-play-fill', classActivate: ' bi-stop-fill' },
 ];
 
 const inputList = [
   { classBase: 'bi bi-gear', name: 'ipConfig', title: 'IP配置：', value: 'ip' },
   { classBase: 'bi bi-gear', name: 'portConfig', title: '端口配置：', value: 'port' }
 ];
+
+
+const nowValue = ref([]); // 当前值
 
 const origin: Record<string, any> = {
   ip: "192.168.4.1",
@@ -84,24 +88,15 @@ setInterval(async () =>
 {
   if (connectServerStatus.value)
   {
-    // 连接服务器
-    console.log('连接服务器');
+    const host = `http://${config.ip}:${config.port}/getValue`;
 
-    const host = `http://${config.ip}:${config.port}/setting`;
-
-    console.log(toRaw(config));
-
-    fetch(host, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(toRaw(config)),
-    })
+    fetch(host, {method: 'GET'})
       .then((response) => response.json())
       .then((data) =>
       {
         console.log('成功:', data);
+
+        nowValue.value = data.nowValue; // 更新当前值
       })
       .catch((error) =>
       {
@@ -151,7 +146,29 @@ const clickFunctionPack: Record<string, () => void> = {
   },
   connectServer: () =>
   {
-    console.log('连接服务器');
+    const host = `http://${config.ip}:${config.port}/setting`;
+
+    console.log(toRaw(config));
+
+    fetch(host, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(toRaw(config)),
+    })
+      .then((response) => response.json())
+      .then((data) =>
+      {
+        console.log('成功:', data);
+      })
+      .catch((error) =>
+      {
+        console.error('错误:', error);
+      });
+  },
+  getValue: () =>
+  {
     connectServerStatus.value = !connectServerStatus.value;
   },
 };
@@ -287,7 +304,7 @@ const updateInputStatus = (event: Event, passage: number) =>
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.inputList.length}%` }"
-                v-for="item of config.inputList"></div>
+                v-for="(item, index) of config.inputList">{{ nowValue[index] }}</div>
             </div>
 
             <!-- 正式配置 -->
@@ -339,8 +356,10 @@ const updateInputStatus = (event: Event, passage: number) =>
             <!-- 正式配置 -->
             <div class="rowItem" v-for="rowItem of config.nowOutputList">
               <!-- 列 -->
-              <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }" v-for="(columnItem, columnIndex) of rowItem">
-                <input type="checkbox" class="checkbox" v-model="rowItem[columnIndex]" :true-value="1" :false-value="0"></input>
+              <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }"
+                v-for="(columnItem, columnIndex) of rowItem">
+                <input type="checkbox" class="checkbox" v-model="rowItem[columnIndex]" :true-value="1"
+                  :false-value="0"></input>
               </div>
             </div>
 

@@ -22,7 +22,7 @@ int outputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 
 
 // 当前实时数据
-int nowValue[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+int nowValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
 // 当前输出的针脚
 int outputPin[] = { 20, 21, 47, 48, 45, 40, 41, 42, 18, 17 };
@@ -228,7 +228,7 @@ bool channelVerification(int channel, int configStep) {
   int status = inputStatus[channel - 1];
 
   if (status == -1) {
-    nowValue[channel - 1] = 0;
+    nowValue[channel - 1] = -1;
     return true;
   }
 
