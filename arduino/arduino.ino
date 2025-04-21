@@ -230,11 +230,15 @@ bool channelVerification(int channel, int configStep) {
 void loop() {
   // 测通道的值
   for (int index = 0; index < configItemLength; index++) {
+    int skip = 0;
     for (int channel = 1; channel < MAX_SIZE; channel++) {
       if (!channelVerification(channel, index)) {
+        skip = 1;
         break;
       }
     }
+
+    if (skip == 1) { break; }
 
     for (int channel = 1; channel < MAX_SIZE; channel++) {
       if (outputIO[index][channel - 1]) {
@@ -246,5 +250,5 @@ void loop() {
       }
     }
   }
-  // delay(5000);
+  delay(5000);
 }
