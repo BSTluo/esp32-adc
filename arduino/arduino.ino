@@ -21,6 +21,32 @@ int inputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 // 输出通道的状态配置
 int outputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 
+
+// 当前实时数据
+int nowValue[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+int outputPin1 = 20;
+int outputPin2 = 21;
+int outputPin3 = 47;
+int outputPin4 = 48;
+int outputPin5 = 45;
+int outputPin6 = 40;
+int outputPin7 = 41;
+int outputPin8 = 42;
+int outputPin9 = 18;
+int outputPin10 = 17;
+
+int inputPin1 = 1;
+int inputPin2 = 2;
+int inputPin3 = 3;
+int inputPin4 = 4;
+int inputPin5 = 5;
+int inputPin6 = 6;
+int inputPin7 = 7;
+int inputPin8 = 8;
+int inputPin9 = 9;
+int inputPin10 = 10;
+
 void print2DArray(int arr[MAX_SIZE][MAX_SIZE]) {
   for (int i = 0; i < MAX_SIZE; i++) {
     for (int j = 0; j < MAX_SIZE; j++) {
@@ -44,6 +70,29 @@ void setup() {
   for (int i = 0; i < MAX_SIZE; i++) {
     inputStatus[i] = -1;
   }
+
+  pinMode(inputPin1, INPUT);
+  pinMode(inputPin2, INPUT);
+  pinMode(inputPin3, INPUT);
+  pinMode(inputPin4, INPUT);
+  pinMode(inputPin5, INPUT);
+  pinMode(inputPin6, INPUT);
+  pinMode(inputPin7, INPUT);
+  pinMode(inputPin8, INPUT);
+  pinMode(inputPin9, INPUT);
+  pinMode(inputPin10, INPUT);
+
+  pinMode(outputPin1, OUTPUT);
+  pinMode(outputPin2, OUTPUT);
+  pinMode(outputPin3, OUTPUT);
+  pinMode(outputPin4, OUTPUT);
+  pinMode(outputPin5, OUTPUT);
+  pinMode(outputPin6, OUTPUT);
+  pinMode(outputPin7, OUTPUT);
+  pinMode(outputPin8, OUTPUT);
+  pinMode(outputPin9, OUTPUT);
+  pinMode(outputPin10, OUTPUT);
+
 
   // initialize serial communication at 115200 bits per second:
   Serial.begin(9600);
@@ -75,8 +124,7 @@ void setup() {
   });
 
   server.on(
-    "/setting", HTTP_POST, [](AsyncWebServerRequest *request) {},
-    NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+    "/setting", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
       // 将收到的数据解析为 JSON
       JsonDocument jsonDoc;
       DeserializationError error = deserializeJson(jsonDoc, data);
@@ -142,25 +190,177 @@ void setup() {
     });
 
 
+
+  // server.on("/getValue", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
+  //   AsyncWebServerResponse *response = request->beginResponse(200);
+  //   response->addHeader("Access-Control-Allow-Origin", "*");
+  //   response->addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  //   response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+  //   request->send(response);
+  // });
+
+  server.on(
+    "/getValue", HTTP_GET, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+      // 回复客户端
+      String response;
+      JsonDocument responseDoc;
+      responseDoc["status"] = "ok";
+
+      JsonArray arr = responseDoc.createNestedArray("nowValue");
+      for (int i = 0; i < 10; i++) {
+        arr.add(nowValue[i]);
+      }
+
+      serializeJson(responseDoc, response);
+
+      AsyncWebServerResponse *resp = request->beginResponse(200, "application/json", response);
+      resp->addHeader("Access-Control-Allow-Origin", "*");
+      request->send(resp);
+    });
+
   server.begin();
 }
 
-// 通道验证
-bool channelVerification(int channel) {
-  int status = inputStatus[channel];
+// 通道转输入pin针
+int channelToInputPin(int channel) {
+  switch (channel) {
+    case 1:
+      return inputPin1;
+      break;
 
-  if (status == -1) { return true; }
+    case 2:
+      return inputPin2;
+      break;
+
+    case 3:
+      return inputPin3;
+      break;
+
+    case 4:
+      return inputPin4;
+      break;
+
+    case 5:
+      return inputPin5;
+      break;
+
+    case 6:
+      return inputPin6;
+      break;
+
+    case 7:
+      return inputPin7;
+      break;
+
+    case 8:
+      return inputPin8;
+      break;
+
+    case 9:
+      return inputPin9;
+      break;
+
+    case 10:
+      return inputPin10;
+      break;
+
+    default:
+      return -1;
+  }
+}
+
+// 通道转输出pin针
+int channelToOutputPin(int channel) {
+  switch (channel) {
+    case 1:
+      return outputPin1;
+      break;
+
+    case 2:
+      return outputPin2;
+      break;
+
+    case 3:
+      return outputPin3;
+      break;
+
+    case 4:
+      return outputPin4;
+      break;
+
+    case 5:
+      return outputPin5;
+      break;
+
+    case 6:
+      return outputPin6;
+      break;
+
+    case 7:
+      return outputPin7;
+      break;
+
+    case 8:
+      return outputPin8;
+      break;
+
+    case 9:
+      return outputPin9;
+      break;
+
+    case 10:
+      return outputPin10;
+      break;
+
+    default:
+      return -1;
+  }
+}
+
+// 通道验证
+bool channelVerification(int channel, int configStep) {
+  int status = inputStatus[channel - 1];
+
+  if (status == -1) {
+    nowValue[channel - 1] = 0;
+    return true;
+  }
+
   if (status == 0) {
+    int max = inputMax[channel - 1][configStep];
+    int min = inputMin[channel - 1][configStep];
+
+    int now = analogRead(channelToInputPin(channel));
+    nowValue[channel - 1] = now;
+    if (now > min && now < max) { return true; }
   }
 
   if (status == 1) {
+    int need = inputIO[channel - 1][configStep];
+    int now = digitalRead(channelToInputPin(channel));
+    nowValue[channel - 1] = now;
+    if (now == need) { return true; }
   }
+
+  return false;
 }
 
 void loop() {
   // 测通道的值
+  // for (int index = 0; index < configItemLength; index++) {
+  //   for (int channel = 1; channel < MAX_SIZE; channel++) {
+  //     if (!channelVerification(channel, index)) {
+  //       break;
+  //     }
+  //   }
 
-
-  for (int index = 0; index < configItemLength; index++) {
-  }
+  //   for (int channel = 1; channel < MAX_SIZE; channel++) {
+  //     if (outputIO[index][channel - 1]) {
+  //       digitalWrite(channelToOutputPin(channel), HIGH);
+  //     } else {
+  //       digitalWrite(channelToOutputPin(channel), LOW);
+  //     }
+  //   }
+  // }
+  // delay(5000);
 }
