@@ -220,7 +220,7 @@ const updateInputStatus = (event: Event, passage: number) =>
   const target = event.target as HTMLSelectElement;
   const status = Number(target.value);
   // item.status = status;
-  config.nowInputList.forEach((element: any, index: number) =>
+  config.nowInputList.forEach((_: any, index: number) =>
   {
     if (status == -1)
     {
@@ -272,7 +272,7 @@ const updateInputStatus = (event: Event, passage: number) =>
             <div class="rowItem" :style="{ writingMode: 'vertical-rl', textOrientation: 'upright' }">通道</div>
             <div class="rowItem" :style="{ writingMode: 'vertical-rl', textOrientation: 'upright' }">实时</div>
 
-            <div class="rowItem" v-for="(item, index) of config.nowInputList">
+            <div class="rowItem" v-for="(_, index) of config.nowInputList">
               <!-- 列 -->
               {{ index + 1 }}
             </div>
@@ -310,7 +310,7 @@ const updateInputStatus = (event: Event, passage: number) =>
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.inputList.length}%` }"
-                v-for="(item, index) of config.inputList">{{ nowInputValue[index] }}</div>
+                v-for="(_, index) of config.inputList">{{ nowInputValue[index] }}</div>
             </div>
 
             <!-- 正式配置 -->
@@ -354,7 +354,7 @@ const updateInputStatus = (event: Event, passage: number) =>
             <div class="rowItem">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / config.outputList.length}%` }"
-                v-for="(item, index) of config.inputList">
+                v-for="(_, index) of config.inputList">
                 {{ nowOutputValue[index] }}
               </div>
             </div>
@@ -363,7 +363,7 @@ const updateInputStatus = (event: Event, passage: number) =>
             <div class="rowItem" v-for="rowItem of config.nowOutputList">
               <!-- 列 -->
               <div class="columnItem" :style="{ width: `${100 / rowItem.length}%` }"
-                v-for="(columnItem, columnIndex) of rowItem">
+                v-for="(_, columnIndex) of rowItem">
                 <input type="checkbox" class="checkbox" v-model="rowItem[columnIndex]" :true-value="1"
                   :false-value="0"></input>
               </div>
