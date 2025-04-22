@@ -148,7 +148,7 @@ const clickFunctionPack: Record<string, () => void> = {
   connectServer: () =>
   {
     const host = `http://${config.ip}:${config.port}/setting`;
-    console.log(toRaw(config))
+    console.log(toRaw(config));
     fetch(host, {
       method: 'POST',
       headers: {
@@ -162,7 +162,8 @@ const clickFunctionPack: Record<string, () => void> = {
         if (data.status == "ok")
         {
           alert('写入数据成功！');
-        } else {
+        } else
+        {
           alert('写入数据失败！');
         }
       })
@@ -480,7 +481,7 @@ const updateInputStatus = (event: Event, passage: number) =>
         background-color: #323233;
         display: flex;
         align-items: center;
-
+        overflow-y: auto;
 
         .statusListBox {
           width: 2%;
@@ -491,6 +492,7 @@ const updateInputStatus = (event: Event, passage: number) =>
             height: 75px;
             width: 100%;
             border-bottom: 1px solid #4a4a4a;
+            border-right: 1px solid #4a4a4a;
             display: flex;
             align-items: center;
             justify-content: center;
