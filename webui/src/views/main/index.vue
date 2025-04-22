@@ -148,9 +148,7 @@ const clickFunctionPack: Record<string, () => void> = {
   connectServer: () =>
   {
     const host = `http://${config.ip}:${config.port}/setting`;
-
-    console.log(toRaw(config));
-
+    console.log(toRaw(config))
     fetch(host, {
       method: 'POST',
       headers: {
@@ -161,7 +159,6 @@ const clickFunctionPack: Record<string, () => void> = {
       .then((response) => response.json())
       .then((data) =>
       {
-        console.log('成功:', data);
         if (data.status == "ok")
         {
           alert('写入数据成功！');
@@ -324,12 +321,12 @@ const updateInputStatus = (event: Event, passage: number) =>
                 <div class="analogConfigBox" v-if="config.inputList[columnIndex].status == 0">
                   <div class="analogConfigItem">
                     <div class="analogIcon bi bi-arrow-up-short"></div>
-                    <input type="text" v-model="columnItem.max"></input>
+                    <input type="number" v-model.number="columnItem.max"></input>
                   </div>
 
                   <div class="analogConfigItem">
                     <div class="analogIcon bi bi-arrow-down-short"></div>
-                    <input type="text" v-model="columnItem.min"></input>
+                    <input type="number" v-model.number="columnItem.min"></input>
                   </div>
                 </div>
 

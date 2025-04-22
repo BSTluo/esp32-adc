@@ -1,10 +1,12 @@
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include <Preferences.h>
 
 AsyncWebServer server(80);
+Preferences prefs;
 
-const int MAX_SIZE = 10;
+#define MAX_SIZE 10
 
 // 总配置行数
 int configItemLength;
@@ -26,7 +28,7 @@ int nowInputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 int nowOutputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
 // 当前输出的针脚
-int outputPin[] = { 20, 21, 47, 48, 45, 40, 41, 42, 18, 17 };
+int outputPin[] = { 20, 21, 35, 47, 45, 40, 41, 42, 18, 17 };
 
 // 当前输入的针脚
 int inputPin[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -49,8 +51,50 @@ void print1DArray(int arr[MAX_SIZE]) {
   Serial.println();  // 打印完一行后换行
 }
 
-void setup() {
+void saveConfig() {
+  prefs.begin("config", false);
 
+  prefs.putInt("cfg_len", configItemLength);
+  prefs.putBytes("in_status", inputStatus, sizeof(inputStatus));
+  prefs.putBytes("in_max", inputMax, sizeof(inputMax));
+  prefs.putBytes("in_min", inputMin, sizeof(inputMin));
+  prefs.putBytes("in_io", inputIO, sizeof(inputIO));
+  prefs.putBytes("out_io", outputIO, sizeof(outputIO));
+
+  prefs.end();
+}
+
+void loadConfig() {
+  prefs.begin("config", true); // 只读模式
+
+  if (prefs.isKey("cfg_len")) {
+    configItemLength = prefs.getInt("cfg_len");
+  }
+
+  if (prefs.isKey("in_status")) {
+    prefs.getBytes("in_status", inputStatus, sizeof(inputStatus));
+  }
+
+  if (prefs.isKey("in_max")) {
+    prefs.getBytes("in_max", inputMax, sizeof(inputMax));
+  }
+
+  if (prefs.isKey("in_min")) {
+    prefs.getBytes("in_min", inputMin, sizeof(inputMin));
+  }
+
+  if (prefs.isKey("in_io")) {
+    prefs.getBytes("in_io", inputIO, sizeof(inputIO));
+  }
+
+  if (prefs.isKey("out_io")) {
+    prefs.getBytes("out_io", outputIO, sizeof(outputIO));
+  }
+
+  prefs.end();
+}
+
+void setup() {
   for (int i = 0; i < MAX_SIZE; i++) {
     inputStatus[i] = -1;
   }
@@ -76,6 +120,10 @@ void setup() {
   pinMode(outputPin[7], OUTPUT);
   pinMode(outputPin[8], OUTPUT);
   pinMode(outputPin[9], OUTPUT);
+
+  loadConfig();
+  Serial.println("Loaded configItemLength: " + String(configItemLength));
+  Serial.println("First inputStatus: " + String(inputStatus[0]));
 
   // initialize serial communication at 115200 bits per second:
   Serial.begin(9600);
@@ -155,6 +203,8 @@ void setup() {
       JsonDocument responseDoc;
       responseDoc["status"] = "ok";
       serializeJson(responseDoc, response);
+      
+      saveConfig();
 
       AsyncWebServerResponse *resp = request->beginResponse(200, "application/json", response);
       resp->addHeader("Access-Control-Allow-Origin", "*");
@@ -214,7 +264,8 @@ bool channelVerification(int channel, int configStep) {
 
     int now = analogRead(channelToInputPin(channel));
     nowInputValue[channel - 1] = now;
-    if (now > min && now < max) { return true; }
+
+    if (now >= min && now <= max) { return true; }
   }
 
   if (status == 1) {
@@ -229,29 +280,47 @@ bool channelVerification(int channel, int configStep) {
 
 void loop() {
   // 测通道的值
+
+  digitalWrite(channelToOutputPin(1), LOW);
+  nowOutputValue[0] = 0;
+  digitalWrite(channelToOutputPin(2), LOW);
+  nowOutputValue[1] = 0;
+  digitalWrite(channelToOutputPin(3), LOW);
+  nowOutputValue[2] = 0;
+  digitalWrite(channelToOutputPin(4), LOW);
+  nowOutputValue[3] = 0;
+  digitalWrite(channelToOutputPin(5), LOW);
+  nowOutputValue[4] = 0;
+  digitalWrite(channelToOutputPin(6), LOW);
+  nowOutputValue[5] = 0;
+  digitalWrite(channelToOutputPin(7), LOW);
+  nowOutputValue[6] = 0;
+  digitalWrite(channelToOutputPin(8), LOW);
+  nowOutputValue[7] = 0;
+  digitalWrite(channelToOutputPin(9), LOW);
+  nowOutputValue[8] = 0;
+  digitalWrite(channelToOutputPin(10), LOW);
+  nowOutputValue[9] = 0;
+
   for (int index = 0; index < configItemLength; index++) {
     int skip = 0;
-    for (int channel = 1; channel < MAX_SIZE; channel++) {
+    for (int channel = 1; channel <= MAX_SIZE; channel++) {
       if (!channelVerification(channel, index)) {
         skip = 1;
-        break;
       }
     }
 
-    for (int channel = 1; channel < MAX_SIZE; channel++) {
+    for (int channel = 1; channel <= MAX_SIZE; channel++) {
       if (skip == 1) {
-        digitalWrite(channelToOutputPin(channel), LOW);
-        nowOutputValue[channel - 1] = 0;
+        continue;
       } else {
-        if (outputIO[index][channel - 1]) {
+        if (outputIO[channel - 1][index] == 1) {
           digitalWrite(channelToOutputPin(channel), HIGH);
           nowOutputValue[channel - 1] = 1;
-        } else {
-          digitalWrite(channelToOutputPin(channel), LOW);
-          nowOutputValue[channel - 1] = 0;
         }
       }
     }
   }
-  delay(5000);
+
+  delay(2);
 }
