@@ -8,6 +8,48 @@ Preferences prefs;
 
 #define MAX_SIZE 10
 
+const char html[] PROGMEM = R"rawliteral(
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + Vue + TS</title>
+    <script type="module" crossorigin src="/assets/index-Dlo3kwux.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CAKqDvXf.css">
+  </head>
+  <body>
+    <div id="app"></div>
+
+  </body>
+</html>
+)rawliteral";
+
+const char woff[] PROGMEM = R"rawliteral(
+
+)rawliteral";
+
+const char woff2[] PROGMEM = R"rawliteral(
+
+)rawliteral";
+
+const char css1[] PROGMEM = R"rawliteral(
+
+)rawliteral";
+
+const char js1[] PROGMEM = R"rawliteral(
+
+)rawliteral";
+
+const char css2[] PROGMEM = R"rawliteral(
+
+)rawliteral";
+
+const char js2[] PROGMEM = R"rawliteral(
+
+)rawliteral";
+
+
 // 总配置行数
 int configItemLength;
 
@@ -65,7 +107,7 @@ void saveConfig() {
 }
 
 void loadConfig() {
-  prefs.begin("config", true); // 只读模式
+  prefs.begin("config", true);  // 只读模式
 
   if (prefs.isKey("cfg_len")) {
     configItemLength = prefs.getInt("cfg_len");
@@ -133,9 +175,10 @@ void setup() {
 
   WiFi.softAP("Analog", "kiekert123");
 
-  // webServer.on("/", handleRoot);                          //设置主页回调函数
-  // webServer.on("/assets/index-CdHVMU6r.js", handleJs);    //设置主页回调函数
-  // webServer.on("/assets/index-BdrH_tCX.css", handleCss);  //设置主页回调函数
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    // 从 PROGMEM 发送字符串
+    request->send_P(200, "text/html", page_html);
+  });
 
   server.on("/setting", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {
     AsyncWebServerResponse *response = request->beginResponse(200);
@@ -203,7 +246,7 @@ void setup() {
       JsonDocument responseDoc;
       responseDoc["status"] = "ok";
       serializeJson(responseDoc, response);
-      
+
       saveConfig();
 
       AsyncWebServerResponse *resp = request->beginResponse(200, "application/json", response);
