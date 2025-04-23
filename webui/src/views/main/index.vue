@@ -236,12 +236,24 @@ const updateInputStatus = (event: Event, passage: number) =>
     if (status == 0)
     {
       delete config.nowInputList[index][passage].value;
+      if (!config.nowInputList[index][passage].max)
+      {
+        config.nowInputList[index][passage].max = 0;
+      }
+      if (!config.nowInputList[index][passage].min)
+      {
+        config.nowInputList[index][passage].min = 0;
+      }
     }
 
     if (status == 1)
     {
       delete config.nowInputList[index][passage].max;
       delete config.nowInputList[index][passage].min;
+      if (!config.nowInputList[index][passage].value)
+      {
+        config.nowInputList[index][passage].value = 0;
+      }
     }
   });
 

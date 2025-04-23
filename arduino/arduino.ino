@@ -8,10 +8,14 @@
 AsyncWebServer server(80);
 Preferences prefs;
 
+// 当前滤波数量
+#define FilterCount 10
+
+// 最大通道数
 #define MAX_SIZE 10
 
 // 总配置行数
-int configItemLength;
+int configItemLength = 0;
 
 // 输入通道的状态配置
 int inputStatus[MAX_SIZE];
@@ -28,6 +32,7 @@ int outputIO[MAX_SIZE][MAX_SIZE] = { 0 };
 // 当前实时数据
 int nowInputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 int nowOutputValue[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+int *nowOutputValueArr[MAX_SIZE];
 
 // 当前输出的针脚
 int outputPin[] = { 20, 21, 35, 47, 45, 40, 41, 42, 18, 17 };
@@ -93,7 +98,23 @@ void loadConfig() {
     prefs.getBytes("out_io", outputIO, sizeof(outputIO));
   }
 
+  createOutputArrObject();
   prefs.end();
+}
+
+void createOutputArrObject() {
+  for (int i = 0; i < MAX_SIZE; i++) {
+
+    if (configItemLength > 0) {
+      nowOutputValueArr[i] = (int *)malloc(configItemLength * sizeof(int));
+
+      for (int j = 0; j < configItemLength; j++) {
+        nowOutputValueArr[i][j] = 0;
+      }
+    } else {
+      nowOutputValueArr[i] = nullptr;  // 或者保留 NULL 以防误访问
+    }
+  }
 }
 
 void setup() {
@@ -210,6 +231,7 @@ void setup() {
       serializeJson(responseDoc, response);
 
       saveConfig();
+      createOutputArrObject();
 
       AsyncWebServerResponse *resp = request->beginResponse(200, "application/json", response);
       resp->addHeader("Access-Control-Allow-Origin", "*");
@@ -254,6 +276,16 @@ int channelToOutputPin(int channel) {
   return outputPin[channel - 1];
 }
 
+// 简易滤波
+int simpleAverageFilter(int channel, int samples = 10) {
+  long sum = 0;
+  for (int i = 0; i < samples; i++) {
+    sum += analogRead(channelToInputPin(channel));
+    delayMicroseconds(1);
+  }
+  return sum / samples;
+}
+
 // 通道验证
 bool channelVerification(int channel, int configStep) {
   int status = inputStatus[channel - 1];
@@ -267,7 +299,7 @@ bool channelVerification(int channel, int configStep) {
     int max = inputMax[channel - 1][configStep];
     int min = inputMin[channel - 1][configStep];
 
-    int now = analogRead(channelToInputPin(channel));
+    int now = simpleAverageFilter(channel, FilterCount);
     nowInputValue[channel - 1] = now;
 
     if (now >= min && now <= max) { return true; }
@@ -286,27 +318,6 @@ bool channelVerification(int channel, int configStep) {
 void loop() {
   // 测通道的值
 
-  // digitalWrite(channelToOutputPin(1), LOW);
-  // nowOutputValue[0] = 0;
-  // digitalWrite(channelToOutputPin(2), LOW);
-  // nowOutputValue[1] = 0;
-  // digitalWrite(channelToOutputPin(3), LOW);
-  // nowOutputValue[2] = 0;
-  // digitalWrite(channelToOutputPin(4), LOW);
-  // nowOutputValue[3] = 0;
-  // digitalWrite(channelToOutputPin(5), LOW);
-  // nowOutputValue[4] = 0;
-  // digitalWrite(channelToOutputPin(6), LOW);
-  // nowOutputValue[5] = 0;
-  // digitalWrite(channelToOutputPin(7), LOW);
-  // nowOutputValue[6] = 0;
-  // digitalWrite(channelToOutputPin(8), LOW);
-  // nowOutputValue[7] = 0;
-  // digitalWrite(channelToOutputPin(9), LOW);
-  // nowOutputValue[8] = 0;
-  // digitalWrite(channelToOutputPin(10), LOW);
-  // nowOutputValue[9] = 0;
-
   for (int index = 0; index < configItemLength; index++) {
     int skip = 0;
     for (int channel = 1; channel <= MAX_SIZE; channel++) {
@@ -316,19 +327,35 @@ void loop() {
     }
 
     for (int channel = 1; channel <= MAX_SIZE; channel++) {
+
+      if (outputIO[channel - 1][index] == 0) {
+        nowOutputValueArr[channel - 1][index] = 0;
+      }
+
       if (skip == 1) {
         if (outputIO[channel - 1][index] == 1) {
-          digitalWrite(channelToOutputPin(channel), LOW);
-          nowOutputValue[channel - 1] = 0;
+          nowOutputValueArr[channel - 1][index] = 0;
         }
       } else {
         if (outputIO[channel - 1][index] == 1) {
-          digitalWrite(channelToOutputPin(channel), HIGH);
-          nowOutputValue[channel - 1] = 1;
+          nowOutputValueArr[channel - 1][index] = 1;
         }
       }
     }
   }
 
-  delay(2);
+  for (int channel = 0; channel < MAX_SIZE; channel++) {
+    int sumNumber = 0;
+    for (int index = 0; index < configItemLength; index++) {
+      sumNumber = sumNumber + nowOutputValueArr[channel][index];
+    }
+
+    if (sumNumber > 0) {
+      nowOutputValue[channel] = 1;
+      digitalWrite(channelToOutputPin(channel + 1), HIGH);
+    } else {
+      nowOutputValue[channel] = 0;
+      digitalWrite(channelToOutputPin(channel + 1), LOW);
+    }
+  }
 }
