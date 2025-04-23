@@ -286,26 +286,26 @@ bool channelVerification(int channel, int configStep) {
 void loop() {
   // 测通道的值
 
-  digitalWrite(channelToOutputPin(1), LOW);
-  nowOutputValue[0] = 0;
-  digitalWrite(channelToOutputPin(2), LOW);
-  nowOutputValue[1] = 0;
-  digitalWrite(channelToOutputPin(3), LOW);
-  nowOutputValue[2] = 0;
-  digitalWrite(channelToOutputPin(4), LOW);
-  nowOutputValue[3] = 0;
-  digitalWrite(channelToOutputPin(5), LOW);
-  nowOutputValue[4] = 0;
-  digitalWrite(channelToOutputPin(6), LOW);
-  nowOutputValue[5] = 0;
-  digitalWrite(channelToOutputPin(7), LOW);
-  nowOutputValue[6] = 0;
-  digitalWrite(channelToOutputPin(8), LOW);
-  nowOutputValue[7] = 0;
-  digitalWrite(channelToOutputPin(9), LOW);
-  nowOutputValue[8] = 0;
-  digitalWrite(channelToOutputPin(10), LOW);
-  nowOutputValue[9] = 0;
+  // digitalWrite(channelToOutputPin(1), LOW);
+  // nowOutputValue[0] = 0;
+  // digitalWrite(channelToOutputPin(2), LOW);
+  // nowOutputValue[1] = 0;
+  // digitalWrite(channelToOutputPin(3), LOW);
+  // nowOutputValue[2] = 0;
+  // digitalWrite(channelToOutputPin(4), LOW);
+  // nowOutputValue[3] = 0;
+  // digitalWrite(channelToOutputPin(5), LOW);
+  // nowOutputValue[4] = 0;
+  // digitalWrite(channelToOutputPin(6), LOW);
+  // nowOutputValue[5] = 0;
+  // digitalWrite(channelToOutputPin(7), LOW);
+  // nowOutputValue[6] = 0;
+  // digitalWrite(channelToOutputPin(8), LOW);
+  // nowOutputValue[7] = 0;
+  // digitalWrite(channelToOutputPin(9), LOW);
+  // nowOutputValue[8] = 0;
+  // digitalWrite(channelToOutputPin(10), LOW);
+  // nowOutputValue[9] = 0;
 
   for (int index = 0; index < configItemLength; index++) {
     int skip = 0;
@@ -317,7 +317,10 @@ void loop() {
 
     for (int channel = 1; channel <= MAX_SIZE; channel++) {
       if (skip == 1) {
-        continue;
+        if (outputIO[channel - 1][index] == 1) {
+          digitalWrite(channelToOutputPin(channel), LOW);
+          nowOutputValue[channel - 1] = 0;
+        }
       } else {
         if (outputIO[channel - 1][index] == 1) {
           digitalWrite(channelToOutputPin(channel), HIGH);

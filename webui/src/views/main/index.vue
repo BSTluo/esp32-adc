@@ -197,7 +197,11 @@ const getOutputWidth = () =>
 
 const addConfigList = () =>
 {
-  const newInputList = new Array(config.inputList.length).fill(null).map(() => ({}));
+  const newInputList = new Array(config.inputList.length).fill(null).map(() => ({
+    max: 0,
+    min: 0,
+    value: 0
+  }));
   config.nowInputList.push(newInputList);
 
   const newOutputList = new Array(config.outputList.length).map(() => 0);
